@@ -26,6 +26,8 @@
                     <componentmodel:SortDescription PropertyName="Source" />
                 </CollectionViewSource.SortDescriptions>
             </CollectionViewSource>
+            <control:HeaderActionFixedOrderDropHandler x:Key="HeaderActionFixedOrderDropHandler" />
+            <control:HeaderActionLiveReorderDropHandler x:Key="HeaderActionLiveReorderDropHandler" />
 
             <Style x:Key="HeaderActionListBoxItemStyle" TargetType="ListBoxItem">
                 <Setter Property="HorizontalContentAlignment" Value="Stretch" />
@@ -639,9 +641,13 @@
                             Padding="8,6"
                             HorizontalAlignment="Stretch"
                             VerticalAlignment="Stretch"
+                            control:ListBoxReorderAnimationBehavior.AnimationDuration="0:0:0.18"
+                            control:ListBoxReorderAnimationBehavior.EnableAnimation="True"
+                            dd:DragDrop.DropHandler="{StaticResource HeaderActionLiveReorderDropHandler}"
                             dd:DragDrop.IsDragSource="True"
                             dd:DragDrop.IsDropTarget="True"
-                            dd:DragDrop.UseDefaultDragAdorner="True"
+                            dd:DragDrop.UseDefaultDragAdorner="False"
+                            dd:DragDrop.UseDefaultEffectDataTemplate="False"
                             Background="Transparent"
                             BorderBrush="{DynamicResource ControlElevationBorderBrush}"
                             BorderThickness="1"
@@ -666,9 +672,11 @@
                             Padding="8,8"
                             HorizontalAlignment="Stretch"
                             VerticalAlignment="Stretch"
+                            dd:DragDrop.DropHandler="{StaticResource HeaderActionFixedOrderDropHandler}"
                             dd:DragDrop.IsDragSource="True"
                             dd:DragDrop.IsDropTarget="True"
-                            dd:DragDrop.UseDefaultDragAdorner="True"
+                            dd:DragDrop.UseDefaultDragAdorner="False"
+                            dd:DragDrop.UseDefaultEffectDataTemplate="False"
                             Background="Transparent"
                             BorderBrush="{DynamicResource ControlElevationBorderBrush}"
                             BorderThickness="1"
