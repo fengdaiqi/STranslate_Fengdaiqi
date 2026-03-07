@@ -45,6 +45,7 @@ public static class SingleInstance<TApplication> where TApplication : Applicatio
     /// Application mutex.
     /// </summary>
     internal static Mutex? SingleInstanceMutex { get; set; }
+    private static bool _ownsMutex;
 
     #endregion
 
@@ -62,8 +63,22 @@ public static class SingleInstance<TApplication> where TApplication : Applicatio
 
         string channelName = string.Concat(applicationIdentifier, Delimiter, ChannelNameSuffix);
 
-        // Create mutex based on unique application Id to check if this is the first instance of the application. 
-        SingleInstanceMutex = new Mutex(true, applicationIdentifier, out var firstInstance);
+        // 不依赖 createdNew 判断首实例，避免已遗弃的命名互斥体导致应用误判为“已有实例”并直接退出。
+        SingleInstanceMutex = new Mutex(false, applicationIdentifier);
+
+        var firstInstance = false;
+        try
+        {
+            firstInstance = SingleInstanceMutex.WaitOne(0, false);
+            _ownsMutex = firstInstance;
+        }
+        catch (AbandonedMutexException)
+        {
+            // 前一个进程异常退出后会触发该异常，此时当前进程已获得互斥体所有权。
+            firstInstance = true;
+            _ownsMutex = true;
+        }
+
         if (firstInstance)
         {
             _ = CreateRemoteServiceAsync(channelName);
@@ -81,7 +96,11 @@ public static class SingleInstance<TApplication> where TApplication : Applicatio
     /// </summary>
     public static void Cleanup()
     {
-        SingleInstanceMutex?.ReleaseMutex();
+        if (!_ownsMutex || SingleInstanceMutex is null)
+            return;
+
+        SingleInstanceMutex.ReleaseMutex();
+        _ownsMutex = false;
     }
 
     #endregion
